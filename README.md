@@ -20,7 +20,7 @@ To get started with the ChatBot, follow these steps:
 1. Clone the repository: `git clone https://github.com/NanthagopalEswaran/ChatBot.git` 📂
 2. Install the required dependencies: `poetry install` 📦
 3. Run the ChatBot application: `poetry run chainlit run app.py`. This will automatically open the chatbot in your default browser. 🌐
-   
+
     > Default url - [http://localhost:8000/](http://localhost:8000/)
 
 ## ⚙️ Usage
@@ -38,7 +38,7 @@ To get started with the ChatBot, follow these steps:
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! 
+We welcome contributions from the community!
 
 This ChatBot is an example for ChatBots build using Chainlit, Langchain and OpenAI.
 
