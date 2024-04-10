@@ -1,30 +1,38 @@
-import chainlit as cl
-from chainlit.input_widget import Switch, Slider, NumberInput
+import logging
 
-from langchain_openai import ChatOpenAI
+import chainlit as cl
+from chainlit.input_widget import NumberInput, Slider, Switch, TextInput
 from langchain.memory.buffer_window import ConversationBufferWindowMemory
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+
+from prompts import CREATIVE_SYSTEM_PROMPT, FACTFUL_SYSTEM_PROMPT, NORMAL_SYSTEM_PROMPT
 
 
 @cl.set_chat_profiles
 async def chat_profile():
     return [
         cl.ChatProfile(
-            name="GPT-3.5-Turbo",
-            markdown_description="The underlying LLM model is **gpt-3.5-turbo-0125**.",
+            name="Normal",
+            markdown_description="Answer should be based on common knowledge",
         ),
         cl.ChatProfile(
-            name="GPT-4-Turbo-Preview",
-            markdown_description="The underlying LLM model is **gpt-4-turbo-preview**.",
+            name="Factful",
+            markdown_description="Answer should be based on facts",
+        ),
+        cl.ChatProfile(
+            name="Creative",
+            markdown_description="Answer should be creative and imaginative",
         ),
     ]
 
 
 @cl.on_message
 async def main(message: cl.Message):
+    system_prompt = cl.user_session.get("system-prompt")
     memory = cl.user_session.get("memory")
     messages: list = memory.load_memory_variables({})["history"]
-    messages.insert(0, SystemMessage(content="You are a helpful assistant."))
+    messages.insert(0, SystemMessage(content=system_prompt))
     messages.append(HumanMessage(content=message.content))
 
     streaming = cl.user_session.get("streaming")
@@ -59,16 +67,21 @@ async def main(message: cl.Message):
 @cl.on_chat_start
 async def start_chat():
     chat_profile = cl.user_session.get("chat_profile")
-    print(f"starting chat using the {chat_profile} chat profile")
-    if chat_profile == "GPT-3.5-Turbo":
-        cl.user_session.set("model", "gpt-3.5-turbo-0125")
-    elif chat_profile == "GPT-4-Turbo-Preview":
-        cl.user_session.set("model", "gpt-4-turbo-preview")
+    logging.info(f"Starting chat with profile: {chat_profile}")
+    if chat_profile == "Factful":
+        cl.user_session.set("system-prompt", FACTFUL_SYSTEM_PROMPT)
+    elif chat_profile == "Creative":
+        cl.user_session.set("system-prompt", CREATIVE_SYSTEM_PROMPT)
     else:
-        cl.user_session.set("model", "gpt-3.5-turbo-0125")
+        cl.user_session.set("system-prompt", NORMAL_SYSTEM_PROMPT)
 
     await cl.ChatSettings(
         [
+            TextInput(
+                id="Model",
+                label="Model",
+                initial="gpt-3.5-turbo-0125",
+            ),
             Switch(id="Streaming", label="Stream Messages", initial=True),
             Slider(
                 id="Temperature",
@@ -89,16 +102,16 @@ async def start_chat():
 
     api_key = cl.user_session.get("env")["OPENAI_API_KEY"]
     cl.user_session.set("api_key", api_key)
+    cl.user_session.set("model", "gpt-3.5-turbo-0125")
     cl.user_session.set("streaming", True)
     cl.user_session.set("temperature", 1)
     cl.user_session.set("chat_count_to_use", 5)
-    cl.user_session.set(
-        "memory", ConversationBufferWindowMemory(k=5, return_messages=True)
-    )
+    cl.user_session.set("memory", ConversationBufferWindowMemory(k=5, return_messages=True))
 
 
 @cl.on_settings_update
 async def update_chat_settings(settings):
+    cl.user_session.set("model", settings["Model"])
     cl.user_session.set("streaming", settings["Streaming"])
     cl.user_session.set("temperature", settings["Temperature"])
     cl.user_session.set("chat_count_to_use", settings["Chat Window Size"])
