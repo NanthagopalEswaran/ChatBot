@@ -2,6 +2,10 @@
 
 This project is a simple ChatBot built using **Chainlit**, a Python library for quickly building chat applications. Chainlit provides a wide range of features that make it easy to develop interactive and engaging chatbots. 🚀
 
+![Demo](Chainlit%20Chatbot%20Demo.mp4)
+
+> Try it out yourself 🚀 - https://huggingface.co/spaces/NandyG/SimpleChatbot
+
 ## 🌟 Features
 
 - **Easy to use**: Similar interface to ChatGPT. 🎮
